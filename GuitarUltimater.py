@@ -1,54 +1,51 @@
+from gettabs import *
 from urllib import *
-import urllib
-import json
-from pygoogle import pygoogle
+from lxml.etree import tostring
 
 """ 
 	This program will take a song title as an input and output
 	the text of the most common tab from ultimate guitar
 	It uses pygoogle to search for the tabs
 	
-	Language: Python 2
+	Language: Python 3
 	Author: Chris Johnson
 """
 
-url = 'http://tabs.ultimate-guitar.com/j/jimi_hendrix/purple_haze_tab.htm'
-
 def readUG(url):
-	site = urlopen(url).read()
+	"""
+	site = request.urlopen(url).read()
+	
 	start = 0
 	end = 0
 	for i in range(0, len(site)):
-		if site[i:i+12] == '<pre><i></i>':
+		if site[i:i+12] == "<pre><i></i>":
+			print('BBBBBBBBBBBBBBBBBBBBBBBBBb')
 			start = i+12
-		if site[i:i+6] == '</pre>' and start != 0:
+		if site[i:i+6] == '</pre>' and start != 0 and i > start:
+			print("AAAAAAAAAAAAAAAAAAAAAAAA")
 			end = i
 			break
-	return site[start:end]
-	print start, end
-	
-def search(song):
-	query = urllib.urlencode({'q': search})
-	url = 'http://ajax.googleapis.com/ajax/services/search/web?v=1.0&%s' % query
-	search_response = urllib.urlopen(url)
-	search_results = search_response.read()
-	results = json.loads(search_results)
-	data = results['responseData']
-	#print 'Total results: %s' % data['cursor']['estimatedResultCount']
-	hits = data['results']
-	print 'Top %d hits:' % len(hits)
-	for h in hits: print ' ', h['url']
-	#print 'For more results, see %s' % data['cursor']['moreResultsUrl']
+		print(start)
+	return site[start:end] """
 
-	"""
-	search = pygoogle(song + ' guitar tab')
-	urls = search.get_urls()
-	for url in urls:
-		if 'ultimate-guitar' in url:
-			return url
-	"""
+	page = requests.get(url)
+	tree = html.fromstring(page.content)
+	tab = tree.xpath('//div[@id="cont"]//pre')
+	return tostring(tab[2])
 	
+def search(song, ttype):
+	otabs = getTabs(song)
+	tabs = []
+	
+	for tab in otabs:
+		if (tab.ttype == ttype):
+			tabs.append(tab)
+	return tabs
+
+
 if __name__ == '__main__':
-	song = raw_input("Enter song title: ")
-	search(song)
-	#print readUG(search(url))
+	song = input("Enter song title: ")
+	tabs = search(song, "tab")
+	for tab in tabs:
+		print(tab.link + ", " + tab.ttype)
+	print(readUG(tabs[0].link))
